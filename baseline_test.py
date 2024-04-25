@@ -2,6 +2,7 @@
 import os
 import tyro
 import imageio
+import cv2
 import numpy as np
 import tqdm
 import torch
@@ -87,7 +88,7 @@ def test(args):
             gaussians = model.forward_gaussians(input_image)
 
         # save gaussians
-        model.gs.save_ply(gaussians, defaut_path.output_ply_name)
+        model.gs.save_ply(gaussians,output_ply_name)
 
     # render 360 video
     images = []
@@ -130,7 +131,7 @@ def test(args):
                 (image.squeeze(1).permute(0, 2, 3, 1).contiguous().float().cpu().numpy() * 255).astype(np.uint8))
 
     images = np.concatenate(images, axis=0)
-    imageio.mimwrite(defaut_path.output_video_name, images, fps=30)
+    imageio.mimwrite(output_video_name, images, fps=30)
     pass
 
 if __name__=='__main__':
