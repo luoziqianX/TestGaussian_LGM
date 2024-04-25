@@ -16,7 +16,7 @@ def main(args):
     opt = config_defaults['big']
     opt.resume=args.lgm_checkpoints_path
     opt.num_frames=args.num_frames
-    
+
     # model
     lgm_model = LGM_gaussian(opt)
     lgm_model = lgm_model.half().to(device)
