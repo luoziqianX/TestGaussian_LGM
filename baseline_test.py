@@ -1,7 +1,8 @@
-#LGM import
+# LGM import
 import os
 import tyro
 import imageio
+import cv2
 import numpy as np
 import tqdm
 import torch
@@ -17,42 +18,46 @@ import kiui
 from kiui.op import recenter
 from kiui.cam import orbit_camera
 
-from core.options import AllConfigs, Options,config_defaults
+from core.options import AllConfigs, Options, config_defaults
 from core.models import LGM
 from mvdream.pipeline_mvdream import MVDreamPipeline
+
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 
+
 class defaut_name:
-    output_ply_name= 'pointclouds.ply'
-    output_video_name= 'video.mp4'
+    output_ply_name = 'pointclouds.ply'
+    output_video_name = 'video.mp4'
+
 
 def load_images(args):
-    input_dir=args.input_dir
-    images=torch.zeros(21,576,576,3).type(torch.float32).to(args.device)
+    input_dir = args.input_dir
+    images = torch.zeros(21, 576, 576, 3).type(torch.float32).to(args.device)
     for i in range(21):
-        idx=(args.istart+i)%21
-        image_path=os.path.join(input_dir,"{:04}.png".format(idx))
-        image_np=cv2.imread(image_path)
-        image_np=cv2.cvtColor(image_np,cv2.COLOR_BGR2RGB)
-        image_np=np.array(image_np,dtype=np.float32)/255.0
-        images[idx]=torch.tensor(image_np)
+        idx = (args.istart + i) % 21
+        image_path = os.path.join(input_dir, "{:04}.png".format(idx))
+        image_np = cv2.imread(image_path)
+        image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        image_np = np.array(image_np, dtype=np.float32) / 255.0
+        images[idx] = torch.tensor(image_np)
 
-    images=images.permute(0,3,1,2)
-    images=images.to(args.device)
+    images = images.permute(0, 3, 1, 2)
+    images = images.to(args.device)
     return images
 
+
 def test(args):
-    device=args.device
-    opt=config_defaults['big']
-    opt.resume=args.checkpoints_path
-    opt.num_frames=21
+    device = args.device
+    opt = config_defaults['big']
+    opt.resume = args.checkpoints_path
+    opt.num_frames = 21
 
-    os.makedirs(args.output_dir,exist_ok=True)
-    output_ply_name=os.path.join(args.output_dir,defaut_name.output_ply_name)
-    output_video_name=os.path.join(args.output_dir,defaut_name.output_video_name)
+    os.makedirs(args.output_dir, exist_ok=True)
+    output_ply_name = os.path.join(args.output_dir, defaut_name.output_ply_name)
+    output_video_name = os.path.join(args.output_dir, defaut_name.output_video_name)
 
-    model=LGM(opt)
+    model = LGM(opt)
     # resume pretrained checkpoint
     if opt.resume is not None:
         if opt.resume.endswith('safetensors'):
@@ -75,7 +80,7 @@ def test(args):
     proj_matrix[3, 2] = - (opt.zfar * opt.znear) / (opt.zfar - opt.znear)
     proj_matrix[2, 3] = 1
 
-    images=load_images(args)
+    images = load_images(args)
     input_image = F.interpolate(images, size=(opt.input_size, opt.input_size), mode='bilinear', align_corners=False)
     input_image = TF.normalize(input_image, IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)
     rays_embeddings = model.prepare_default_rays(device, num_frames=opt.num_frames, elevation=10)
@@ -87,7 +92,7 @@ def test(args):
             gaussians = model.forward_gaussians(input_image)
 
         # save gaussians
-        model.gs.save_ply(gaussians, defaut_path.output_ply_name)
+        model.gs.save_ply(gaussians, output_ply_name)
 
     # render 360 video
     images = []
@@ -130,16 +135,17 @@ def test(args):
                 (image.squeeze(1).permute(0, 2, 3, 1).contiguous().float().cpu().numpy() * 255).astype(np.uint8))
 
     images = np.concatenate(images, axis=0)
-    imageio.mimwrite(defaut_path.output_video_name, images, fps=30)
+    imageio.mimwrite(output_video_name, images, fps=30)
     pass
 
-if __name__=='__main__':
-    parser=argparse.ArgumentParser()
-    parser.add_argument('--input_dir',type=str,default='./inputs')
-    parser.add_argument('--istart',type=int,default=0)
-    parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument('--checkpoints_path',type=str,default='pretrained/model_fp16.safetensors')
-    parser.add_argument('--output_dir',type=str,default='./outputs')
 
-    args=parser.parse_args()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_dir', type=str, default='./inputs')
+    parser.add_argument('--istart', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda')
+    parser.add_argument('--checkpoints_path', type=str, default='pretrained/model_fp16.safetensors')
+    parser.add_argument('--output_dir', type=str, default='./outputs')
+
+    args = parser.parse_args()
     test(args)

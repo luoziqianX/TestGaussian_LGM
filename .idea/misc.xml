@@ -4,4 +4,7 @@
     <option name="sdkName" value="torch" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="torch" project-jdk-type="Python SDK" />
+  <component name="PyCharmDSProjectLayout">
+    <option name="id" value="JupyterRightHiddenStructureLayout" />
+  </component>
 </project>
