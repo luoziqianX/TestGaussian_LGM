@@ -83,7 +83,7 @@ def test(args):
     images = load_images(args)
     input_image = F.interpolate(images, size=(opt.input_size, opt.input_size), mode='bilinear', align_corners=False)
     input_image = TF.normalize(input_image, IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)
-    rays_embeddings = model.prepare_default_rays(device, num_frames=opt.num_frames, elevation=10)
+    rays_embeddings = model.prepare_default_rays(device, num_frames=opt.num_frames, elevation=-10)
     input_image = torch.cat([input_image, rays_embeddings], dim=1).unsqueeze(0)  # [1, 4, 9, H, W]
 
     with torch.no_grad():
@@ -96,7 +96,7 @@ def test(args):
 
     # render 360 video
     images = []
-    elevation = 0
+    elevation = -10
     if opt.fancy_video:
         azimuth = np.arange(0, 720, 4, dtype=np.int32)
         for azi in tqdm.tqdm(azimuth):
