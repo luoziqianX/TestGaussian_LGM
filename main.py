@@ -162,7 +162,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mixed_precision', type=str,default='fp16')
+    parser.add_argument('--mixed_precision', type=str, default='fp16')
     parser.add_argument('--device', type=str, default='cuda:0')
     parser.add_argument('--num_frames', type=int, default=7)
     parser.add_argument('--output_dir', type=str, default='training_outputs')
@@ -178,6 +178,5 @@ if __name__ == '__main__':
     parser.add_argument('--num_acc', type=int, default=100)
     parser.add_argument('--num_test', type=int, default=100)
     parser.add_argument('--gradient_clip', type=float, default=1.0)
-    parser.add_argument('--half', action='store_true')  # TODO fp32 training
     args = parser.parse_args()
     main(args)

@@ -29,7 +29,8 @@ class ThumanDataset(Dataset):
                  iters=2445,
                  training: bool = False,
                  device: str = 'cuda:0',
-                 use_half=False):
+                 use_half=False,
+                 elev=-10, ):
         assert 21 % num_frames == 0
         super().__init__()
         self.dataset_dir = dataset_dir
@@ -40,6 +41,7 @@ class ThumanDataset(Dataset):
         self.training = training
         self.opt = opt
         self.gap = 21 // num_frames
+        self.elev = elev
 
         items = ['{:04}'.format(i) for i in range(self.istart, self.iters)]
         if training:
@@ -86,16 +88,17 @@ class ThumanDataset(Dataset):
         hints = torch.stack(hints, dim=0)
         hints = hints.permute(0, 3, 1, 2).contiguous()
 
-        images_input = TF.normalize(images, IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)
-        images_input = F.interpolate(images_input, size=(self.opt.input_size, self.opt.input_size),
+        images_input = F.interpolate(images, size=(self.opt.input_size, self.opt.input_size),
                                      mode='bilinear', align_corners=False)
+        images_input = TF.normalize(images_input, IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD)
+
         images_output = F.interpolate(images, size=(self.opt.output_size, self.opt.output_size),
                                       mode='bilinear', align_corners=False)
         hints = F.interpolate(hints, size=(self.opt.input_size, self.opt.input_size),
                               mode='bilinear', align_corners=False)
 
         # get cam_pos
-        elev = -10
+        elev = self.elev
         azi_list = (np.linspace(0, 360, self.num_frames + 1)[:-1] + random.random() * 360) % 360
         cam_poses = np.stack(
             [orbit_camera(elev, azi, radius=self.opt.cam_radius) for azi in azi_list], axis=0
@@ -122,9 +125,9 @@ class ThumanDataset(Dataset):
             input=input,
             images_output=images_output,
             hint=hints,
-            cam_pos=cam_poses,
+            cam_pos=cam_pos,
             cam_view=cam_view,
-            cam_view_proj=cam_poses, )
+            cam_view_proj=cam_view_proj, )
 
         for key in result.keys():
             if self.use_half:
