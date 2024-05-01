@@ -66,8 +66,13 @@ def test(args):
     output_video_name = os.path.join(args.output_dir, defaut_name.output_video_name)
 
     model = ControlLGM(opt, num_frames=args.num_frames)
-    if args.checkpoints_path:
+    if args.checkpoints_path and 'pth' in args.checkpoints_path:
         model.load_state_dict(torch.load(args.checkpoints_path)['model'], strict=False)
+    else:
+        assert 'safetensors' in args.checkpoints_path
+        from safetensors.torch import load_file
+        ckpt = load_file(args.checkpoints_path, device='cpu')
+        model.load_state_dict(ckpt, strict=False)
     model = model.half()
     model = model.to(device)
     model.eval()

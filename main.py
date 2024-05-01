@@ -36,6 +36,7 @@ def main(args):
         opt=opt,
         num_frames=args.num_frames,
         dataset_dir=args.dataset_dir,
+        control_mode=args.control_mode,
         device='cpu',
         use_half=False,
         training=True,
@@ -44,6 +45,7 @@ def main(args):
         opt=opt,
         num_frames=args.num_frames,
         dataset_dir=args.dataset_dir,
+        control_mode=args.control_mode,
         device='cpu',
         use_half=False,
         training=False,
@@ -175,6 +177,7 @@ if __name__ == '__main__':
                         default='/home/luoziqian//Works/Thuman_dataset/Thuman_dataset_for_sv3d_1')
     parser.add_argument('--save_name', type=str, default='control_lgm.pth')
     parser.add_argument('--ckpt_path', type=str, default='./control_lgm.pth')
+    parser.add_argument('--control_mode', type=str, default='smplx')
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--num_workers', type=int, default=8)
     parser.add_argument('--num_epochs', type=int, default=1000)
