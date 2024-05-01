@@ -25,7 +25,6 @@ def main(args):
     control_lgm = ControlLGM(opt, num_frames=args.num_frames)
     assert os.path.exists(args.ckpt_path)
     control_lgm.load_state_dict(torch.load(args.ckpt_path)['model'], strict=False)
-    control_lgm = control_lgm.to(args.device)
 
     train_dataset = ThumanDataset(
         opt=opt,
@@ -91,7 +90,7 @@ def main(args):
                 accelerator.backward(loss)
 
                 if accelerator.sync_gradients:
-                    accelerator.clip_grad_norm_(control_lgm.controlunet.parameters(), args.gradient_clip)
+                    accelerator.clip_grad_norm_(control_lgm.parameters(), args.gradient_clip)
 
                 optimizer.step()
                 scheduler.step()
@@ -113,7 +112,7 @@ def main(args):
                     pred_images = pred_images.transpose(0, 3, 1, 4, 2).reshape(-1,
                                                                                pred_images.shape[1] * pred_images.shape[
                                                                                    3], 3)
-                    kiui.write_image(f'{opt.workspace}/train_pred_images_{epoch}_{i}.jpg', pred_images)
+                    kiui.write_image(f'{args.output_dir}/train_pred_images_{epoch}_{i}.jpg', pred_images)
         total_loss = accelerator.gather_for_metrics(total_loss).mean()
         total_psnr = accelerator.gather_for_metrics(total_psnr).mean()
         if accelerator.is_main_process:
@@ -140,7 +139,7 @@ def main(args):
                     gt_images = data['images_output'].detach().cpu().numpy()  # [B, V, 3, output_size, output_size]
                     gt_images = gt_images.transpose(0, 3, 1, 4, 2).reshape(-1, gt_images.shape[1] * gt_images.shape[3],
                                                                            3)  # [B*output_size, V*output_size, 3]
-                    kiui.write_image(f'{opt.workspace}/eval_gt_images_{epoch}_{i}.jpg', gt_images)
+                    kiui.write_image(f'{args.output_dir}/eval_gt_images_{epoch}_{i}.jpg', gt_images)
 
                     pred_images = out['images_pred'].detach().cpu().numpy()  # [B, V, 3, output_size, output_size]
                     pred_images = pred_images.transpose(0, 3, 1, 4, 2).reshape(-1,
@@ -150,7 +149,7 @@ def main(args):
 
                     # pred_alphas = out['alphas_pred'].detach().cpu().numpy() # [B, V, 1, output_size, output_size]
                     # pred_alphas = pred_alphas.transpose(0, 3, 1, 4, 2).reshape(-1, pred_alphas.shape[1] * pred_alphas.shape[3], 1)
-                    # kiui.write_image(f'{opt.workspace}/eval_pred_alphas_{epoch}_{i}.jpg', pred_alphas)
+                    # kiui.write_image(f'{args.output_dir}/eval_pred_alphas_{epoch}_{i}.jpg', pred_alphas)
 
             torch.cuda.empty_cache()
 
