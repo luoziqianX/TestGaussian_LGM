@@ -90,7 +90,7 @@ def main(args):
                 accelerator.backward(loss)
 
                 if accelerator.sync_gradients:
-                    accelerator.clip_grad_norm_(control_lgm.parameters(), args.gradient_clip)
+                    accelerator.clip_grad_norm_(control_lgm.controlunet.parameters(), args.gradient_clip)
 
                 optimizer.step()
                 scheduler.step()
