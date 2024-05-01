@@ -9,6 +9,7 @@ from accelerate import Accelerator, DistributedDataParallelKwargs
 import argparse
 import os
 import kiui
+from torch.nn.parallel import DistributedDataParallel
 
 
 def main(args):
@@ -25,6 +26,11 @@ def main(args):
     control_lgm = ControlLGM(opt, num_frames=args.num_frames)
     assert os.path.exists(args.ckpt_path)
     control_lgm.load_state_dict(torch.load(args.ckpt_path)['model'], strict=False)
+    for name, param in control_lgm.named_parameters():
+        if 'controlunet' in name:
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
 
     train_dataset = ThumanDataset(
         opt=opt,
@@ -66,7 +72,7 @@ def main(args):
         drop_last=True,
     )
 
-    optimizer = torch.optim.AdamW(control_lgm.controlunet.parameters(), lr=args.lr, weight_decay=0.05,
+    optimizer = torch.optim.AdamW(control_lgm.parameters(), lr=args.lr, weight_decay=0.05,
                                   betas=(0.9, 0.95))
     total_steps = args.training_steps * len(dataloader)
     pct_start = 3000 / total_steps
