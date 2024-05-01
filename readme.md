@@ -39,7 +39,7 @@ You can make Control LGM model weight from LGM 's pretrained model
 by running the following command:
 
 ```bash
-python make_control_lgm.py --from LGM_MODEL_PATH --to CONTROL_LGM_MODEL_PATH
+python make_control_lgm.py --lgm_path LGM_MODEL_PATH --control_lgm_path CONTROL_LGM_MODEL_PATH
 ```
 
 ## Inference
