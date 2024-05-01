@@ -146,7 +146,7 @@ def main(args):
                     pred_images = pred_images.transpose(0, 3, 1, 4, 2).reshape(-1,
                                                                                pred_images.shape[1] * pred_images.shape[
                                                                                    3], 3)
-                    kiui.write_image(f'{opt.workspace}/eval_pred_images_{epoch}_{i}.jpg', pred_images)
+                    kiui.write_image(f'{args.output_dir}/eval_pred_images_{epoch}_{i}.jpg', pred_images)
 
                     # pred_alphas = out['alphas_pred'].detach().cpu().numpy() # [B, V, 1, output_size, output_size]
                     # pred_alphas = pred_alphas.transpose(0, 3, 1, 4, 2).reshape(-1, pred_alphas.shape[1] * pred_alphas.shape[3], 1)

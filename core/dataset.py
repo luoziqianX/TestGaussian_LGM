@@ -28,7 +28,7 @@ class ThumanDataset(Dataset):
                  i_start=0,
                  iters=2445,
                  training: bool = False,
-                 device: str = 'cuda:0',
+                 device: str = 'cpu',
                  use_half=False,
                  elev=-10, ):
         assert 21 % num_frames == 0
