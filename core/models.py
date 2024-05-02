@@ -171,9 +171,10 @@ class LGM(nn.Module):
 
 class ControlLGM(nn.Module):
     def __init__(self,
-                 opt: Options, num_frames: int = 21):
+                 opt: Options, num_frames: int = 21, scale_hint: float = 1.0):
         super().__init__()
         self.opt = opt
+        self.scale_hint = scale_hint
 
         # unet
         self.controlunet = ControlUnet(
@@ -251,7 +252,7 @@ class ControlLGM(nn.Module):
         # images: [B, 3, H, W]
         # hint: [B, 3, H, W]
         # return: [B, 14, H, W]
-
+        hint *= self.scale_hint
         control = self.controlunet(images, hint)
         x = self.controlnetwork(images, control, only_mid_control=False)
         return x

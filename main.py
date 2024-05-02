@@ -23,7 +23,7 @@ def main(args):
         # kwargs_handlers=[ddp_kwargs],
     )
 
-    control_lgm = ControlLGM(opt, num_frames=args.num_frames)
+    control_lgm = ControlLGM(opt, num_frames=args.num_frames, scale_hint=args.scale_hint)
     assert os.path.exists(args.ckpt_path)
     if args.ckpt_path and 'pth' in args.ckpt_path:
         control_lgm.load_state_dict(torch.load(args.ckpt_path)['model'], strict=False)
@@ -190,5 +190,6 @@ if __name__ == '__main__':
     parser.add_argument('--training_steps', type=int, default=1000)
     parser.add_argument('--num_acc', type=int, default=100)
     parser.add_argument('--gradient_clip', type=float, default=1.0)
+    parser.add_argument('--scale_hint', type=float, default=1.0)
     args = parser.parse_args()
     main(args)
