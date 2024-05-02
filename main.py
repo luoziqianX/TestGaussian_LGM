@@ -1,15 +1,14 @@
-import numpy as np
-import torch
-from core.dataset import ThumanDataset
-from core.models import ControlLGM
-from core.unet import UNet, ControlUnet, ControlNetwork
-from torch.utils.data import DataLoader
-from core.options import config_defaults
-from accelerate import Accelerator, DistributedDataParallelKwargs
 import argparse
 import os
+
 import kiui
-from torch.nn.parallel import DistributedDataParallel
+import torch
+from accelerate import Accelerator
+from torch.utils.data import DataLoader
+
+from core.dataset import ThumanDataset
+from core.models import ControlLGM
+from core.options import config_defaults
 
 
 def main(args):
@@ -181,7 +180,6 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', type=str, default='training_outputs')
     parser.add_argument('--dataset_dir', type=str,
                         default='/home/luoziqian//Works/Thuman_dataset/Thuman_dataset_for_sv3d_1')
-    parser.add_argument('--save_name', type=str, default='control_lgm.pth')
     parser.add_argument('--ckpt_path', type=str, default='./control_lgm.pth')
     parser.add_argument('--control_mode', type=str, default='smplx')
     parser.add_argument('--batch_size', type=int, default=8)

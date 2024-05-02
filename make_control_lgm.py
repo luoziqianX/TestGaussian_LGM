@@ -1,9 +1,10 @@
-import torch
-from safetensors import safe_open
-from core.options import config_defaults
-from core.models import ControlLGM, LGM
 import argparse
+
+import torch
 from safetensors.torch import load_file
+
+from core.models import ControlLGM, LGM
+from core.options import config_defaults
 
 
 def main(args):

@@ -1,26 +1,18 @@
 # LGM import
+import argparse
 import os
-import tyro
-import imageio
+
 import cv2
+import imageio
 import numpy as np
-import tqdm
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
-from safetensors.torch import load_file
-import rembg
-import gradio as gr
-import argparse
-
-import kiui
-from kiui.op import recenter
+import tqdm
 from kiui.cam import orbit_camera
 
-from core.options import AllConfigs, Options, config_defaults
-from core.models import LGM, ControlLGM
-from mvdream.pipeline_mvdream import MVDreamPipeline
+from core.models import ControlLGM
+from core.options import config_defaults
 
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
@@ -65,7 +57,7 @@ def test(args):
     output_ply_name = os.path.join(args.output_dir, defaut_name.output_ply_name)
     output_video_name = os.path.join(args.output_dir, defaut_name.output_video_name)
 
-    model = ControlLGM(opt, num_frames=args.num_frames)
+    model = ControlLGM(opt, num_frames=args.num_frames, scale_hint=args.scale_hint)
     if args.checkpoints_path and 'pth' in args.checkpoints_path:
         model.load_state_dict(torch.load(args.checkpoints_path)['model'], strict=False)
     else:
@@ -159,6 +151,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', type=str, default='./outputs')
     parser.add_argument('--control_type', type=str, default='smplx')
     parser.add_argument('--num_frames', type=int, default=21)
+    parser.add_argument('--scale_hint', type=float, default=1.0)
 
     args = parser.parse_args()
     test(args)
