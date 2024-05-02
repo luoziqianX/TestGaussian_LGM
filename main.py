@@ -25,7 +25,13 @@ def main(args):
 
     control_lgm = ControlLGM(opt, num_frames=args.num_frames)
     assert os.path.exists(args.ckpt_path)
-    control_lgm.load_state_dict(torch.load(args.ckpt_path)['model'], strict=False)
+    if args.ckpt_path and 'pth' in args.ckpt_path:
+        control_lgm.load_state_dict(torch.load(args.ckpt_path)['model'], strict=False)
+    else:
+        assert 'safetensors' in args.ckpt_path
+        from safetensors.torch import load_file
+        ckpt = load_file(args.ckpt_path, device='cpu')
+        control_lgm.load_state_dict(ckpt, strict=False)
     for name, param in control_lgm.named_parameters():
         if 'controlunet' in name:
             param.requires_grad = True
@@ -180,11 +186,9 @@ if __name__ == '__main__':
     parser.add_argument('--control_mode', type=str, default='smplx')
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--num_workers', type=int, default=8)
-    parser.add_argument('--num_epochs', type=int, default=1000)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--training_steps', type=int, default=1000)
     parser.add_argument('--num_acc', type=int, default=100)
-    parser.add_argument('--num_test', type=int, default=100)
     parser.add_argument('--gradient_clip', type=float, default=1.0)
     args = parser.parse_args()
     main(args)
