@@ -39,6 +39,7 @@ def load_input(args):
         hint_np = cv2.cvtColor(hint_np, cv2.COLOR_BGR2RGB)
         hint_np = np.array(hint_np, dtype=np.float32) / 255.0
         images[idx] = torch.tensor(image_np)
+        hints[idx] = torch.tensor(hint_np)
 
     images = images.permute(0, 3, 1, 2)
     images = images.to(args.device)
