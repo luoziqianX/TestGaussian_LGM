@@ -358,7 +358,6 @@ class ControlUnet(nn.Module):
 
         # first
         self.conv_in = nn.Conv2d(in_channels, down_channels[0], kernel_size=3, stride=1, padding=1)
-
         # down
         down_blocks = []
         cout = down_channels[0]
@@ -374,8 +373,16 @@ class ControlUnet(nn.Module):
                 skip_scale=skip_scale,
                 num_frames=num_frames,
             ))
-            self.zero_convs.append(zero_module(self.make_zero_conv(cout)))
+            for i in range(layers_per_block):
+                channel = cin if i == 0 else cout
+                self.zero_convs.append(zero_module(self.make_zero_conv(channel)))
+            if i != len(down_channels) - 1:
+                self.zero_convs.append(zero_module(self.make_zero_conv(cout)))
         self.down_blocks = nn.ModuleList(down_blocks)
+
+        self.mid_block = MidBlock(down_channels[-1], attention=mid_attention, skip_scale=skip_scale,
+                                  num_frames=num_frames)
+        self.middle_block_out = zero_module(self.make_zero_conv(down_channels[-1]))
 
     def make_zero_conv(self, channels):
         return zero_module(nn.Conv2d(channels, channels, 1, padding=0))
@@ -387,11 +394,20 @@ class ControlUnet(nn.Module):
         # first
         x = self.conv_in(x)
         x += guided_hint
+        xss = [x]
 
         # down
-        for block, zero_conv in zip(self.down_blocks, self.zero_convs):
+        zero_idx = 0
+        for block in self.down_blocks:
             x, xs = block(x)
-            outs.append(zero_conv(x))
+            xss.extend(xs)
+
+        x = self.mid_block(x)
+
+        for x_, zero_conv in zip(xss, self.zero_convs):
+            outs.append(zero_conv(x_))
+
+        outs.append(self.middle_block_out(x))
 
         return outs
 
@@ -409,14 +425,16 @@ class ControlNetwork(UNet):
         if control is not None:
             x += control.pop()
 
+        n = len(xss) - 1
+        if not only_mid_control:
+            while control is not None and n >= 0:
+                xss[n] += control.pop()
+                n -= 1
+
         for i, block in enumerate(self.up_blocks):
             xs = xss[-len(block.nets):]
             xss = xss[:-len(block.nets)]
-            if control is None or only_mid_control:
-                x = block(x, xs)
-            else:
-                xs[0] += control.pop()
-                x = block(x, xs)
+            x = block(x, xs)
 
         x = self.norm_out(x)
         x = F.silu(x)
