@@ -42,6 +42,7 @@ def main(args):
         num_frames=args.num_frames,
         dataset_dir=args.dataset_dir,
         control_mode=args.control_mode,
+        if_transformer=args.data_transformer,
         device='cpu',
         use_half=False,
         training=True,
@@ -189,5 +190,6 @@ if __name__ == '__main__':
     parser.add_argument('--num_acc', type=int, default=100)
     parser.add_argument('--gradient_clip', type=float, default=1.0)
     parser.add_argument('--scale_hint', type=float, default=1.0)
+    parser.add_argument('--data_transformer', action='store_true')
     args = parser.parse_args()
     main(args)

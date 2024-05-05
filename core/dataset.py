@@ -15,6 +15,13 @@ from core.utils import get_rays
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 
+from torchvision import transforms
+
+
+def transformer(data):
+    data = transforms.RandomAffine(degrees=10, translate=(0.1, 0.1), fill=1, scale=(0.9, 1.1))(data)
+    return data
+
 
 class ThumanDataset(Dataset):
     def __init__(self,
@@ -27,6 +34,7 @@ class ThumanDataset(Dataset):
                  training: bool = False,
                  device: str = 'cpu',
                  use_half=False,
+                 if_transformer=False,
                  elev=-10, ):
         assert 21 % num_frames == 0
         super().__init__()
@@ -39,6 +47,7 @@ class ThumanDataset(Dataset):
         self.opt = opt
         self.gap = 21 // num_frames
         self.elev = elev
+        self.if_transformer = if_transformer
 
         items = ['{:04}'.format(i) for i in range(self.istart, self.iters)]
         if training:
@@ -117,6 +126,9 @@ class ThumanDataset(Dataset):
         cam_view = torch.inverse(cam_poses).transpose(1, 2)
         cam_view_proj = cam_view @ self.proj_matrix
         cam_pos = - cam_poses[:, :3, 3]
+
+        if self.if_transformer:
+            input = transformer(input)
 
         result = dict(
             input=input,
