@@ -18,11 +18,6 @@ IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 from torchvision import transforms
 
 
-def transformer(data):
-    data = transforms.RandomAffine(degrees=10, translate=(0.1, 0.1), fill=1, scale=(0.9, 1.1))(data)
-    return data
-
-
 class ThumanDataset(Dataset):
     def __init__(self,
                  opt: Options,
@@ -34,7 +29,10 @@ class ThumanDataset(Dataset):
                  training: bool = False,
                  device: str = 'cpu',
                  use_half=False,
-                 if_transformer=False,
+                 use_transformer=False,
+                 degree=10,
+                 translate=0.1,
+                 scale=1.0,
                  elev=-10, ):
         assert 21 % num_frames == 0
         super().__init__()
@@ -47,7 +45,10 @@ class ThumanDataset(Dataset):
         self.opt = opt
         self.gap = 21 // num_frames
         self.elev = elev
-        self.if_transformer = if_transformer
+        self.use_transformer = use_transformer
+        self.degree = degree
+        self.translate = translate
+        self.scale = scale
 
         items = ['{:04}'.format(i) for i in range(self.istart, self.iters)]
         if training:
@@ -69,6 +70,11 @@ class ThumanDataset(Dataset):
 
     def __len__(self):
         return len(self.items * 21)
+
+    def transformer(self, data):
+        data = transforms.RandomAffine(degrees=self.degree, translate=(self.translate, self.translate), fill=1,
+                                       scale=(self.scale, self.scale))(data)
+        return data
 
     def __getitem__(self, idx):
         data_idx = idx // 21
@@ -127,8 +133,8 @@ class ThumanDataset(Dataset):
         cam_view_proj = cam_view @ self.proj_matrix
         cam_pos = - cam_poses[:, :3, 3]
 
-        if self.if_transformer:
-            input = transformer(input)
+        if self.use_transformer:
+            input = self.transformer(input)
 
         result = dict(
             input=input,

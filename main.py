@@ -42,7 +42,10 @@ def main(args):
         num_frames=args.num_frames,
         dataset_dir=args.dataset_dir,
         control_mode=args.control_mode,
-        if_transformer=args.data_transformer,
+        use_transformer=args.data_transformer,
+        degree=args.degree,
+        translate=args.translate,
+        scale=args.scale,
         device='cpu',
         use_half=False,
         training=True,
@@ -191,5 +194,9 @@ if __name__ == '__main__':
     parser.add_argument('--gradient_clip', type=float, default=1.0)
     parser.add_argument('--scale_hint', type=float, default=1.0)
     parser.add_argument('--data_transformer', action='store_true')
+    parser.add_argument('--degree', type=float, default=0)
+    parser.add_argument('--translate', type=float, default=0)
+    parser.add_argument('--scale', type=float, default=1)
+    parser.add_argument('--elev')
     args = parser.parse_args()
     main(args)
